@@ -29,10 +29,10 @@ export const CameraRig: React.FC = () => {
   }, []);
 
   useFrame((_, delta) => {
-    // 1. FIXED 모드: 정면 고정 뷰포트 (Z = 17.5m로 더 멀리서 3D 전체 기기를 한눈에 조망)
+    // 1. FIXED 모드: 정면 고정 뷰포트 (추첨기가 화면 아래쪽에 안정적으로 놓이도록 Y축 Target & Position 조정)
     if (cameraView === 'FIXED') {
-      const fixedPos = new THREE.Vector3(0, 0.8, 17.5);
-      const fixedTarget = new THREE.Vector3(0, 0.2, 0);
+      const fixedPos = new THREE.Vector3(0, 1.4, 17.5);
+      const fixedTarget = new THREE.Vector3(0, 0.9, 0);
 
       camera.position.lerp(fixedPos, delta * 4);
       if (orbitRef.current) {
@@ -89,7 +89,7 @@ export const CameraRig: React.FC = () => {
       maxDistance={35}
       minPolarAngle={0.05}
       maxPolarAngle={Math.PI - 0.05}
-      target={[0, 0.2, 0]}
+      target={[0, 0.9, 0]}
     />
   );
 };
