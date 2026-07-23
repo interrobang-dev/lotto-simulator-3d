@@ -1,13 +1,12 @@
 export type SimulationStatus =
-  | 'READY_RACK'
-  | 'DROPPING'
+  | 'IDLE'
   | 'MIXING'
   | 'EXTRACTING'
   | 'COMPLETED';
 
 export type CameraView = 'FIXED' | 'FREE';
 
-export type BallMode = 'RACK_MODE' | 'PHYSICS_MODE' | 'SLIDE_MODE' | 'DOCKED_MODE';
+export type BallMode = 'PHYSICS_MODE' | 'SLIDE_MODE' | 'DOCKED_MODE';
 
 export interface LottoBallState {
   id: number;

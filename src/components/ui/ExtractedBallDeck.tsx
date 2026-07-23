@@ -6,10 +6,8 @@ export const ExtractedBallDeck: React.FC = () => {
 
   const getStatusText = () => {
     switch (status) {
-      case 'READY_RACK':
-        return '동행복권 비너스(Venus) 추첨기 - 상단 랙 대기 중';
-      case 'DROPPING':
-        return '게이트 오픈! 45개 번호 공 챔버 내부로 투입 중...';
+      case 'IDLE':
+        return '3D 로또 6/45 추첨 시뮬레이터 - 추첨 준비 완료';
       case 'MIXING':
         return '8방향 에어 제트 회오리 교반 작동 중...';
       case 'EXTRACTING':

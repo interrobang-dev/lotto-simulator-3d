@@ -14,8 +14,8 @@ interface LottoStore {
   activeExtractingBall: { number: number; slotIndex: number } | null;
   ballModes: Record<number, BallMode>;
 
-  startVenusSequence: () => void;
-  resetToRack: () => void;
+  startSimulation: () => void;
+  resetSimulation: () => void;
   setStatus: (status: SimulationStatus) => void;
   setAirPower: (power: number) => void;
   setCameraView: (view: CameraView) => void;
@@ -24,7 +24,7 @@ interface LottoStore {
 }
 
 export const useLottoStore = create<LottoStore>((set, get) => ({
-  status: 'READY_RACK',
+  status: 'IDLE',
   extractedBalls: [],
   bonusBall: null,
   airPower: 7,
@@ -37,7 +37,7 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
   ),
   activeExtractingBall: null,
   ballModes: Array.from({ length: 45 }, (_, i) => i + 1).reduce(
-    (acc, curr) => ({ ...acc, [curr]: 'RACK_MODE' }),
+    (acc, curr) => ({ ...acc, [curr]: 'PHYSICS_MODE' }),
     {} as Record<number, BallMode>
   ),
 
@@ -46,26 +46,17 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
   setCameraView: (cameraView) => set({ cameraView }),
   toggleSound: () => set((state) => ({ isSoundEnabled: !state.isSoundEnabled })),
 
-  startVenusSequence: () => {
+  startSimulation: () => {
     const { status } = get();
-    if (status !== 'READY_RACK') return;
+    if (status !== 'IDLE') return;
 
-    set({ status: 'DROPPING' });
+    // 바람이 불기 시작하며 믹싱 상태 전환
+    set({ status: 'MIXING' });
 
     setTimeout(() => {
-      set({
-        status: 'MIXING',
-        ballModes: Array.from({ length: 45 }, (_, i) => i + 1).reduce(
-          (acc, curr) => ({ ...acc, [curr]: 'PHYSICS_MODE' }),
-          {} as Record<number, BallMode>
-        ),
-      });
-
-      setTimeout(() => {
-        set({ status: 'EXTRACTING' });
-        get().triggerNextExtraction();
-      }, 3000);
-    }, 1500);
+      set({ status: 'EXTRACTING' });
+      get().triggerNextExtraction();
+    }, 3000);
   },
 
   triggerNextExtraction: () => {
@@ -143,14 +134,15 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
     }, 2500);
   },
 
-  resetToRack: () =>
+  resetSimulation: () =>
     set({
-      status: 'READY_RACK',
+      status: 'IDLE',
       extractedBalls: [],
       bonusBall: null,
       activeExtractingBall: null,
+      cameraView: 'FIXED',
       ballModes: Array.from({ length: 45 }, (_, i) => i + 1).reduce(
-        (acc, curr) => ({ ...acc, [curr]: 'RACK_MODE' }),
+        (acc, curr) => ({ ...acc, [curr]: 'PHYSICS_MODE' }),
         {} as Record<number, BallMode>
       ),
     }),

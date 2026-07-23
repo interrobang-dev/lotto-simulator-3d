@@ -3,7 +3,6 @@ import { Canvas } from '@react-three/fiber';
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Environment, AdaptiveDpr } from '@react-three/drei';
 import { MixerMachine } from './MixerMachine';
-import { LoadingRack } from './LoadingRack';
 import { SlideTrack } from './SlideTrack';
 import { LottoBall } from './LottoBall';
 import { AirBlower } from './AirBlower';
@@ -29,7 +28,6 @@ export const CanvasContainer: React.FC = () => {
         <CameraRig />
         <AdaptiveDpr pixelated />
 
-        <LoadingRack />
         <SlideTrack />
 
         <Physics gravity={[0, -9.81, 0]}>
@@ -41,7 +39,7 @@ export const CanvasContainer: React.FC = () => {
             <CuboidCollider args={[15, 0.5, 15]} position={[0, -5, 0]} />
           </RigidBody>
 
-          {/* 45개 로또 공 렌더링 */}
+          {/* 45개 로또 공 렌더링 (초기에 챔버 구 내부 바닥에 배치) */}
           {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => (
             <LottoBall key={num} number={num} />
           ))}
