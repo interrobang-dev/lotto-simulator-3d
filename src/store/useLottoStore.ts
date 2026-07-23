@@ -8,7 +8,6 @@ interface LottoStore {
   bonusBall: ExtractedBall | null;
   airPower: number;
   cameraView: CameraView;
-  isSoundEnabled: boolean;
   history: SimulationHistory[];
   ballFrequencyMap: Record<number, number>;
   activeExtractingBall: { number: number; slotIndex: number } | null;
@@ -19,7 +18,6 @@ interface LottoStore {
   setStatus: (status: SimulationStatus) => void;
   setAirPower: (power: number) => void;
   setCameraView: (view: CameraView) => void;
-  toggleSound: () => void;
   triggerExtractionByBallNumber: (ballNumber: number) => boolean;
 }
 
@@ -29,7 +27,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
   bonusBall: null,
   airPower: 7,
   cameraView: 'FIXED',
-  isSoundEnabled: true,
   history: [],
   ballFrequencyMap: Array.from({ length: 45 }, (_, i) => i + 1).reduce(
     (acc, curr) => ({ ...acc, [curr]: 0 }),
@@ -44,22 +41,18 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
   setStatus: (status) => set({ status }),
   setAirPower: (airPower) => set({ airPower }),
   setCameraView: (cameraView) => set({ cameraView }),
-  toggleSound: () => set((state) => ({ isSoundEnabled: !state.isSoundEnabled })),
 
   startSimulation: () => {
     const { status } = get();
     if (status !== 'IDLE') return;
 
-    // 바람이 불기 시작하며 믹싱 상태 전환
     set({ status: 'MIXING' });
 
-    // 3.5초 교반 후 추출 상태로 전환
     setTimeout(() => {
       set({ status: 'EXTRACTING' });
     }, 3500);
   },
 
-  // 3D 씬에서 천장 출구(0, 3.2, 0)와 가장 가까운 실제 공 번호를 전달받아 추출
   triggerExtractionByBallNumber: (ballNumber: number) => {
     const { extractedBalls, bonusBall, ballFrequencyMap, status, activeExtractingBall } = get();
     if (status !== 'EXTRACTING' || activeExtractingBall !== null) return false;
@@ -69,7 +62,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
 
     const slotIdx = extractedBalls.length < 6 ? extractedBalls.length : 6;
 
-    // 선택된 실제 천장 최단거리 공을 SLIDE_MODE로 전환
     set((state) => ({
       activeExtractingBall: { number: ballNumber, slotIndex: slotIdx },
       ballModes: {
@@ -78,7 +70,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
       },
     }));
 
-    // 2.5초간 슬라이드 레일 이송 후 거치대 안착
     setTimeout(() => {
       const isBonus = slotIdx === 6;
       const newBall: ExtractedBall = {
@@ -105,7 +96,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
           },
         }));
       } else {
-        // 보너스 공까지 7개 모두 추출 완료
         set((state) => {
           const newHistoryItem: SimulationHistory = {
             id: Date.now().toString(),
