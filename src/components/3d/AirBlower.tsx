@@ -8,7 +8,7 @@ export const AirBlower: React.FC = () => {
   const status = useLottoStore((state) => state.status);
   const airPower = useLottoStore((state) => state.airPower);
 
-  const particleCount = 120;
+  const particleCount = 180;
   const positions = useRef(new Float32Array(particleCount * 3));
 
   useFrame((_, delta) => {
@@ -16,11 +16,15 @@ export const AirBlower: React.FC = () => {
       if (particlesRef.current) {
         const posArr = particlesRef.current.geometry.attributes.position.array as Float32Array;
         for (let i = 0; i < particleCount; i++) {
-          posArr[i * 3 + 1] += delta * (airPower * 1.5);
+          const angle = posArr[i * 3 + 1] * 2 + i; // 회오리 각도
+          const radius = 0.5 + Math.sin(posArr[i * 3 + 1]) * 1.5;
+
+          posArr[i * 3] = Math.cos(angle) * radius;
+          posArr[i * 3 + 2] = Math.sin(angle) * radius;
+          posArr[i * 3 + 1] += delta * (airPower * 1.8);
+
           if (posArr[i * 3 + 1] > 2.5) {
             posArr[i * 3 + 1] = -2.5;
-            posArr[i * 3] = (Math.random() - 0.5) * 4;
-            posArr[i * 3 + 2] = (Math.random() - 0.5) * 4;
           }
         }
         particlesRef.current.geometry.attributes.position.needsUpdate = true;
@@ -38,7 +42,7 @@ export const AirBlower: React.FC = () => {
               args={[positions.current, 3]}
             />
           </bufferGeometry>
-          <pointsMaterial size={0.08} color="#60a5fa" transparent opacity={0.6} />
+          <pointsMaterial size={0.09} color="#38bdf8" transparent opacity={0.7} />
         </points>
       )}
     </group>

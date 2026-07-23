@@ -1,98 +1,72 @@
-# 3D 로또 시뮬레이터 설계 명세서 (Design Spec)
+# 3D 비너스(Venus) 로또 추첨기 정밀 설계 명세서 (Design Spec v2)
 
-- **작성일**: 2026-07-23
-- **프로젝트명**: 3D Physics Lotto Simulator (`lotto-simulator-3d`)
-- **기술 스택**: Vite, React 18/19, TypeScript, React Three Fiber (`@react-three/fiber`), Drei (`@react-three/drei`), Rapier3D (`@react-three/rapier`), Zustand, Tailwind CSS, Lucide-react
+- **작성일**: 2026-07-23 (v2 개편)
+- **프로젝트명**: 3D Physics Venus Lotto Machine (`lotto-simulator-3d`)
+- **기술 스택**: Vite, React 18+, TypeScript, React Three Fiber (`@react-three/fiber`), Drei (`@react-three/drei`), Rapier3D (`@react-three/rapier`), Zustand, Tailwind CSS, Lucide-react
 
 ---
 
 ## 1. 개요 (Overview)
-본 프로젝트는 웹 브라우저 상에서 실시간 3D 물리 엔진(Rapier3D) 및 비너스 믹서 스타일의 공기 분출 작동 메커니즘을 적용한 **3D 로또 추첨 시뮬레이터** 웹 애플리케이션 구축을 목표로 합니다.
+본 명세서는 한국 동행복권에서 실제로 사용하는 프랑스 AKANIS/Smartplay 사의 **'비너스(Venus)' 추첨기**의 외형 구조, 45개 공 대기 랙, 하단 8방향 회오리 제트 노즐, 상단 진공 흡입 파이프, 전면 곡선 아크릴 배출 슬라이드 레일 및 방송용 자동 시퀀스를 100% 동일하게 3D로 구현하는 정밀 개편 명세서입니다.
 
 ---
 
-## 2. 아키텍처 및 디렉터리 구조
+## 2. 비너스(Venus) 하드웨어 아키텍처
 
-### 2.1 시스템 디렉터리 구조
 ```text
 lotto-simulator-3d/
 ├── docs/
 │   └── superpowers/
-│       └── specs/
-│           └── 2026-07-23-lotto-simulator-3d-design.md
-├── public/
-│   ├── models/            # 3D Asset/GLTF (선택)
-│   └── sounds/            # 공 충돌, 공기 분출, 추출 효과음
+│       ├── specs/
+│       │   └── 2026-07-23-lotto-simulator-3d-design.md
+│       └── plans/
+│           └── 2026-07-23-lotto-simulator-3d-plan.md
 ├── src/
 │   ├── components/
-│   │   ├── 3d/            # 3D Scene 및 Physics 컴포넌트
-│   │   │   ├── CanvasContainer.tsx   # R3F Canvas & Physics Provider Wrapper
-│   │   │   ├── MixerMachine.tsx      # 투명 구형 챔버 & 물리 콜라이더
-│   │   │   ├── ExtractionTube.tsx    # 상단 공 추출 튜브 및 Sensor Collider
-│   │   │   ├── LottoBall.tsx         # 로또 공 1~45 (Dynamic RigidBody & Number Texture)
-│   │   │   ├── AirBlower.tsx         # 공기 분출 물리력 (Impulse/Force Field)
-│   │   │   └── CameraRig.tsx         # 뷰포트 프리셋 & 카메라 연출
-│   │   └── ui/            # 2D HUD 및 컨트롤러
-│   │       ├── ControlPanel.tsx      # 시작/일시정지/리셋, 바람 강도 슬라이더
-│   │       ├── ExtractedBallDeck.tsx # 추출된 공 번호 표시 덱 (6+1개)
-│   │       └── StatisticsModal.tsx   # 번호별 출현 빈도 통계 모달
+│   │   ├── 3d/
+│   │   │   ├── CanvasContainer.tsx   # R3F Canvas & Physics Provider
+│   │   │   ├── VenusMachine.tsx      # 비너스 메인 3D 아크릴 프레임 하우징
+│   │   │   ├── LoadingRack.tsx       # [비너스] 상단 S자 45개 공 대기 랙 & 게이트
+│   │   │   ├── MixerMachine.tsx      # [비너스] 투명 구형 챔버 & 8방향 회오리 제트 노즐
+│   │   │   ├── SlideTrack.tsx        # [비너스] 전면 아크릴 배출 슬라이드 레일 & 7개 거치대
+│   │   │   ├── LottoBall.tsx         # [비너스] RACK_MODE -> PHYSICS_MODE -> SLIDE_MODE 3단 변환
+│   │   │   ├── AirBlower.tsx         # [비너스] 8방향 회오리(Vortex) 공기 기류 파티클
+│   │   │   ├── ExtractionTube.tsx    # [비너스] 상단 진공 흡입 파이프 이펙트
+│   │   │   └── CameraRig.tsx         # [비너스] 방송 스타일 자동 공 추적/줌인 카메라
+│   │   └── ui/
+│   │       ├── ControlPanel.tsx      # [비너스] 방송 추첨 시작, 랙 리셋, 방송/자유 카메라 스위치
+│   │       ├── ExtractedBallDeck.tsx # [비너스] 2D 상단 HUD 덱 & 거치대 3D 연동
+│   │       └── StatisticsModal.tsx   # 누적 추첨 번호 통계 모달
 │   ├── store/
-│   │   └── useLottoStore.ts          # Zustand 글로벌 시뮬레이션 상태 관리
-│   ├── types/
-│   │   └── lotto.ts                  # 로또 데이터 및 물리 인터페이스 정의
-│   ├── utils/
-│   │   └── colorUtils.ts             # 번호 구간별 로또 규격 색상 매핑
-│   ├── App.tsx
-│   └── main.tsx
-└── package.json
+│   │   └── useLottoStore.ts          # 비너스 시퀀스 상태 머신 스토어
+│   └── utils/
+│       ├── colorUtils.ts             # 로또 번호 규격 색상 및 텍스처 생성기
+│       └── bezierUtils.ts            # [신규] 슬라이드 레일 베지어 곡선 좌표 계산기
 ```
 
 ---
 
-## 3. 3D 물리 씬 & 시뮬레이션 메커니즘
+## 3. 비너스(Venus) 동작 5단계 시퀀스 (Sequence State Machine)
 
-### 3.1 투명 믹서 챔버 (Mixer Machine)
-- **RigidBody Type**: `fixed` (고정 구조체)
-- **물리 콜라이더**: 구형(Sphere) 및 하단 원통형 콜라이더 조합으로 공 탈출 방지.
-- **재질 (Material)**: `MeshPhysicalMaterial` 활용 Glassmorphic 효과 구현 (`transmission: 0.95`, `roughness: 0.1`, `ior: 1.5`).
-
-### 3.2 로또 공 45개 (Lotto Balls)
-- **RigidBody Type**: `dynamic` (실시간 물리 연산 적용)
-- **물리 제원**:
-  - 반발 계수 (Restitution): `0.8` (탄성 튀어오름 효과)
-  - 마찰력 (Friction): `0.1`
-  - 구형 반지름: `0.2m`
-- **시각 디자인**:
-  - 번호별 색상 매핑 (1~10 노랑, 11~20 파랑, 21~30 빨강, 31~40 검정, 41~45 초록).
-  - CanvasTexture 사방 텍스처 맵핑을 적용하여 회전 시에도 번호 조망 가능.
-
-### 3.3 공기 분출 물리력 (Air Blower System)
-- `useFrame` 루프 내에서 하단 챔버 영역 내부 공들에게 난수화된 상승 벡터 임펄스(`applyImpulse`) 적용.
-- `Vector3(randomX, randomY_Upward, randomZ)` 방식으로 불규칙 상승 소용돌이 구현.
-- 하단 바람 파티클 이펙트 연출 포함.
-
-### 3.4 공 추출 센서 & 튜브 (Extraction Sensor)
-- 챔버 상단 중앙에 `sensor` 타입 콜라이더 배치.
-- `onIntersectionEnter` 이벤트 발생 시 6개 + 보너스 1개 조건 및 타이밍 간격 검증 후 공 수락.
-- 추출된 공은 Kinematic 상태로 전환되어 상단 튜브 트랙 궤적을 따라 이송.
+1. **`READY_RACK` (대기 랙 정렬)**:
+   - 1~45번 공이 상단 S자 아크릴 대기 랙(`LoadingRack`)에 번호순으로 차곡차곡 배치되어 정렬 대기.
+2. **`DROPPING` (투입 낙하 - 1.5초)**:
+   - 추첨 시작 시 상단 랙 하단 게이트가 열리고, 45개 공이 곡선을 따라 챔버 내부로 우르르 떨어져 투입.
+3. **`MIXING` (8방향 회오리 교반 - 3.0초)**:
+   - 하단 8방향 제트 노즐에서 분출되는 공기압으로 공들이 불규칙하게 회오리치며 챔버 내부에서 강하게 혼합.
+4. **`EXTRACTING` (순차 흡입 및 슬라이드 배출)**:
+   - 4.5초 간격으로 상단 파이프에서 진공 흡입 이펙트 발동.
+   - 포획된 공은 Kinematic 상태로 전환되어 전면 곡선 슬라이드 레일(`SlideTrack`)을 따라 데굴데굴 굴러 내려와 1~6번 및 보너스 거치대에 정밀 안착.
+5. **`COMPLETED` (추첨 완료)**:
+   - 6+1개 공 배출 완료 후 방송 결과 자막 및 통계 기록 저장.
 
 ---
 
-## 4. UI/UX Overlay & 상태 관리
+## 4. 카메라 연출 & 스플라인 이송 궤적
 
-### 4.1 Zustand 글로벌 상태 스키마 (`useLottoStore`)
-- `status`: `'IDLE' | 'MIXING' | 'EXTRACTING' | 'COMPLETED'`
-- `extractedBalls`: 추출 완료된 공 데이터 객체 배열
-- `bonusBall`: 보너스 공 데이터
-- `airPower`: 바람 분출 강도 (1 ~ 10 레벨)
-- `cameraView`: `'DEFAULT' | 'TOP' | 'TUBE_ZOOM' | 'FOLLOW_BALL'`
-- `history` & `ballFrequencyMap`: 번호별 출현 빈도 통계 데이터 관리
-
-### 4.2 HUD 인터페이스 구성
-1. **Extracted Ball Display Deck (상단)**: 당첨 번호 6개 + 보너스 1개 슬롯. 공 추출 시 팝업 사운드 및 스케일 애니메이션 적용.
-2. **Control Bar (하단)**: [시작 / 일시정지 / 리셋], 바람 강도 슬라이더, 카메라 프리셋 버튼.
-3. **Statistics Modal (우측 상단)**: 누적 추첨 번호별 빈도 차트 모달.
-
-### 4.3 물리 및 성능 예외 처리 (Guardrails)
-- **Outer Safety Net**: 챔버 바깥으로 공이 튕겨나가는 경우 경계 콜라이더 감지 후 원점으로 위치 복구.
-- **Adaptive DPR**: `@react-three/drei`의 `AdaptiveDpr`을 통해 저사양 환경 프레임 방어 (60fps 유지).
+- **공 이송 스플라인 (`bezierUtils.ts`)**:
+  - 상단 흡입 튜브 `(0, 3.2, 0)` ➔ 전면 아크릴 레일 `(0, 2.5, 1.2)` ➔ 전면 슬라이드 회전 궤적 ➔ 거치대 목표 슬롯 `(x, -1.8, 2.2)` 좌표를 3차 베지어 곡선으로 계산하여 매끄러운 자전/굴러내림 연출.
+- **방송 카메라 (`CameraRig.tsx`)**:
+  - `READY_RACK`: 상단 랙 줌인 뷰
+  - `MIXING`: 전체 추첨기 전면 뷰
+  - `EXTRACTING`: 흡입 줌인 ➔ 슬라이드 굴러내려오는 공 추적 뷰 ➔ 안착 줌인.
