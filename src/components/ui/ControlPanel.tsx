@@ -21,10 +21,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onOpenStats }) => {
   } = useLottoStore();
 
   const views: { id: CameraView; label: string }[] = [
-    { id: 'DEFAULT', label: '방송 정면' },
-    { id: 'RACK_ZOOM', label: '상단 랙' },
-    { id: 'TUBE_ZOOM', label: '흡입구' },
-    { id: 'FOLLOW_BALL', label: '공 추적' },
+    { id: 'FIXED', label: '방송 정면 (고정)' },
+    { id: 'FREE', label: '자유 시점' },
   ];
 
   return (
@@ -71,14 +69,14 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onOpenStats }) => {
 
       <div className="h-6 w-px bg-slate-700/80 mx-1" />
 
-      {/* 카메라 프리셋 토글 */}
-      <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl">
+      {/* 카메라 2개 모드 토글 (방송 정면 고정 / 자유 시점) */}
+      <div className="flex items-center gap-1.5 bg-slate-800/80 p-1 rounded-xl">
         <Eye className="w-4 h-4 text-slate-400 ml-1.5 mr-0.5" />
         {views.map((v) => (
           <button
             key={v.id}
             onClick={() => setCameraView(v.id)}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               cameraView === v.id
                 ? 'bg-sky-500 text-slate-950 shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'

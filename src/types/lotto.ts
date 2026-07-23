@@ -5,7 +5,7 @@ export type SimulationStatus =
   | 'EXTRACTING'
   | 'COMPLETED';
 
-export type CameraView = 'DEFAULT' | 'RACK_ZOOM' | 'TUBE_ZOOM' | 'FOLLOW_BALL';
+export type CameraView = 'FIXED' | 'FREE';
 
 export type BallMode = 'RACK_MODE' | 'PHYSICS_MODE' | 'SLIDE_MODE' | 'DOCKED_MODE';
 

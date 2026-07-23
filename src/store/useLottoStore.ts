@@ -28,7 +28,7 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
   extractedBalls: [],
   bonusBall: null,
   airPower: 7,
-  cameraView: 'DEFAULT',
+  cameraView: 'FIXED',
   isSoundEnabled: true,
   history: [],
   ballFrequencyMap: Array.from({ length: 45 }, (_, i) => i + 1).reduce(
@@ -50,12 +50,11 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
     const { status } = get();
     if (status !== 'READY_RACK') return;
 
-    set({ status: 'DROPPING', cameraView: 'RACK_ZOOM' });
+    set({ status: 'DROPPING' });
 
     setTimeout(() => {
       set({
         status: 'MIXING',
-        cameraView: 'DEFAULT',
         ballModes: Array.from({ length: 45 }, (_, i) => i + 1).reduce(
           (acc, curr) => ({ ...acc, [curr]: 'PHYSICS_MODE' }),
           {} as Record<number, BallMode>
@@ -84,7 +83,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
 
     set((state) => ({
       activeExtractingBall: { number: targetNum, slotIndex: slotIdx },
-      cameraView: 'FOLLOW_BALL',
       ballModes: {
         ...state.ballModes,
         [targetNum]: 'SLIDE_MODE',
@@ -110,7 +108,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
         set((state) => ({
           extractedBalls: [...state.extractedBalls, newBall],
           activeExtractingBall: null,
-          cameraView: 'DEFAULT',
           ballFrequencyMap: updatedFreq,
           ballModes: {
             ...state.ballModes,
@@ -134,7 +131,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
             bonusBall: newBall,
             activeExtractingBall: null,
             status: 'COMPLETED',
-            cameraView: 'DEFAULT',
             history: [newHistoryItem, ...state.history],
             ballFrequencyMap: updatedFreq,
             ballModes: {
@@ -153,7 +149,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
       extractedBalls: [],
       bonusBall: null,
       activeExtractingBall: null,
-      cameraView: 'DEFAULT',
       ballModes: Array.from({ length: 45 }, (_, i) => i + 1).reduce(
         (acc, curr) => ({ ...acc, [curr]: 'RACK_MODE' }),
         {} as Record<number, BallMode>
