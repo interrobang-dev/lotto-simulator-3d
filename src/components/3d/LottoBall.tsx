@@ -14,6 +14,8 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
   const rigidBodyRef = useRef<any>(null);
   const meshRef = useRef<THREE.Mesh>(null);
 
+  const status = useLottoStore((state) => state.status);
+  const airPower = useLottoStore((state) => state.airPower);
   const ballMode = useLottoStore((state) => state.ballModes[number] || 'RACK_MODE');
   const activeExtractingBall = useLottoStore((state) => state.activeExtractingBall);
   const extractedBalls = useLottoStore((state) => state.extractedBalls);
@@ -44,9 +46,29 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
   }, [number]);
 
   const slideProgress = useRef(0);
+  const impulseTimer = useRef(Math.random() * 10);
 
   useFrame((_, delta) => {
-    // 1. SLIDE_MODE: 전면 레일 굴러내려옴
+    // 1. PHYSICS_MODE 인 공들에게 지속적인 8방향 회오리 공기 물리력(Impulse) 적용
+    if (ballMode === 'PHYSICS_MODE' && rigidBodyRef.current && (status === 'MIXING' || status === 'EXTRACTING')) {
+      impulseTimer.current += delta * 5;
+
+      const translation = rigidBodyRef.current.translation();
+      // 하단 챔버에 가깝거나 일정 높이 이하일수록 강하게 튀어오름
+      if (translation.y < 1.5) {
+        // 회오리 소용돌이 각도 및 불규칙 상승 임펄스 계산
+        const vortexAngle = impulseTimer.current + number;
+        const baseForce = airPower * 0.035;
+
+        const impulseX = Math.cos(vortexAngle) * baseForce + (Math.random() - 0.5) * 0.02;
+        const impulseY = (Math.random() * 0.4 + 0.6) * baseForce * 2.2;
+        const impulseZ = Math.sin(vortexAngle) * baseForce + (Math.random() - 0.5) * 0.02;
+
+        rigidBodyRef.current.applyImpulse({ x: impulseX, y: impulseY, z: impulseZ }, true);
+      }
+    }
+
+    // 2. SLIDE_MODE: 전면 레일 굴러내려옴
     if (ballMode === 'SLIDE_MODE' && activeExtractingBall?.number === number) {
       slideProgress.current = Math.min(slideProgress.current + delta * 0.5, 1);
       const pos = getVenusSlidePath(activeExtractingBall.slotIndex, slideProgress.current);
@@ -58,7 +80,7 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
       }
     }
 
-    // 2. DOCKED_MODE: 전면 거치대에 안착
+    // 3. DOCKED_MODE: 전면 거치대에 안착
     if (ballMode === 'DOCKED_MODE') {
       const extractedInfo = [...extractedBalls, bonusBall].find((b) => b?.number === number);
       if (extractedInfo && meshRef.current) {
@@ -68,17 +90,16 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
     }
   });
 
-  // PHYSICS_MODE일 때만 Rapier RigidBody 렌더링 (순간이동 로직 완전 삭제, ccd 활성화)
   if (ballMode === 'PHYSICS_MODE') {
     return (
       <RigidBody
         ref={rigidBodyRef}
         colliders={false}
         position={physicsSpawnPosition}
-        restitution={0.8}
-        friction={0.2}
-        linearDamping={0.3}
-        angularDamping={0.3}
+        restitution={0.85}
+        friction={0.15}
+        linearDamping={0.2}
+        angularDamping={0.2}
         ccd={true}
       >
         <BallCollider args={[0.22]} />
@@ -90,7 +111,6 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
     );
   }
 
-  // RACK_MODE / SLIDE_MODE / DOCKED_MODE 일 때는 Kinematic Mesh 렌더링
   return (
     <mesh
       ref={meshRef}
