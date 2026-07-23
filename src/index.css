@@ -1,4 +1,18 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+*,
+*::before,
+*::after,
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: 'Pretendard Variable', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', sans-serif !important;
+}
 
 @layer utilities {
   .lotto-gold-glow {
@@ -35,7 +49,7 @@
   transition: all 0.3s ease;
 }
 
-/* 4. 스크롤바 썸 Hover 시 골드 상향 반작임 */
+/* 4. 스크롤바 썸 Hover 시 골드 상향 반짝임 */
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.95) 100%);
   box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
