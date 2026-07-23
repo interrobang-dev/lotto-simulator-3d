@@ -2,6 +2,25 @@ import { create } from 'zustand';
 import type { SimulationStatus, CameraView, ExtractedBall, SimulationHistory, BallMode } from '../types/lotto';
 import { getLottoColor } from '../utils/colorUtils';
 
+// 예약된 비동기 타이머들을 추적 관리하여 초기화 시 일괄 파기
+type TimeoutType = ReturnType<typeof setTimeout>;
+const activeTimeouts: TimeoutType[] = [];
+
+const addTimeout = (fn: () => void, delay: number) => {
+  const timeoutId = setTimeout(() => {
+    fn();
+    const idx = activeTimeouts.indexOf(timeoutId);
+    if (idx !== -1) activeTimeouts.splice(idx, 1);
+  }, delay);
+  activeTimeouts.push(timeoutId);
+  return timeoutId;
+};
+
+const clearAllTimeouts = () => {
+  activeTimeouts.forEach((id) => clearTimeout(id));
+  activeTimeouts.length = 0;
+};
+
 interface LottoStore {
   status: SimulationStatus;
   extractedBalls: ExtractedBall[];
@@ -46,10 +65,14 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
     const { status } = get();
     if (status !== 'IDLE') return;
 
+    clearAllTimeouts(); // 기존 타이머 클리어
     set({ status: 'MIXING' });
 
-    setTimeout(() => {
-      set({ status: 'EXTRACTING' });
+    // 3.5초 교반 후 추출 단계 전환
+    addTimeout(() => {
+      if (get().status === 'MIXING') {
+        set({ status: 'EXTRACTING' });
+      }
     }, 3500);
   },
 
@@ -70,7 +93,11 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
       },
     }));
 
-    setTimeout(() => {
+    // 2.5초간 비행 궤적 이송 후 안착
+    addTimeout(() => {
+      // 타이머 실행 순간 status 검증 (중간 초기화 시 차단)
+      if (get().status !== 'EXTRACTING') return;
+
       const isBonus = slotIdx === 6;
       const newBall: ExtractedBall = {
         number: ballNumber,
@@ -122,7 +149,11 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
     return true;
   },
 
-  resetSimulation: () =>
+  resetSimulation: () => {
+    // 1. 모든 비동기 타이머 즉시 취소 및 파기
+    clearAllTimeouts();
+
+    // 2. 스토어 상태 완전 초기화
     set({
       status: 'IDLE',
       extractedBalls: [],
@@ -133,5 +164,6 @@ export const useLottoStore = create<LottoStore>((set, get) => ({
         (acc, curr) => ({ ...acc, [curr]: 'PHYSICS_MODE' }),
         {} as Record<number, BallMode>
       ),
-    }),
+    });
+  },
 }));
