@@ -2,4 +2,5 @@
 * text=auto
 
 # Exclude agent skills from GitHub language statistics
-.agent/** linguist-documentation
+.agents/** linguist-documentation
+.agents/** linguist-vendored
