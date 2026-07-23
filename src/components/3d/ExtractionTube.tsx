@@ -10,18 +10,34 @@ interface ExtractionTubeProps {
 
 export const ExtractionTube: React.FC<ExtractionTubeProps> = ({ ballsRefMap }) => {
   const { status, activeExtractingBall, triggerExtractionByBallNumber, extractedBalls, bonusBall } = useLottoStore();
-  const lastExtractedTime = useRef(0);
-  const exitPoint = useRef(new THREE.Vector3(0, 2.85, 0)); // 아치 캡 내부 중심 위치
+  const lastExtractedTime = useRef(Date.now());
+  const exitPoint = useRef(new THREE.Vector3(0, 2.85, 0));
+
+  const BASE_THRESHOLD = 0.75;
+  const MAX_THRESHOLD = 2.4;
+  const thresholdRadius = useRef(BASE_THRESHOLD);
 
   useFrame(() => {
-    if (status !== 'EXTRACTING' || activeExtractingBall !== null) return;
+    if (status !== 'EXTRACTING' || activeExtractingBall !== null) {
+      lastExtractedTime.current = Date.now();
+      thresholdRadius.current = BASE_THRESHOLD;
+      return;
+    }
 
     const now = Date.now();
-    if (now - lastExtractedTime.current < 3800) return;
+    const elapsedTime = (now - lastExtractedTime.current) / 1000;
+
+    if (elapsedTime < 3.0) {
+      thresholdRadius.current = BASE_THRESHOLD;
+      return;
+    }
+
+    const extraTime = elapsedTime - 3.0;
+    thresholdRadius.current = Math.min(BASE_THRESHOLD + extraTime * 0.35, MAX_THRESHOLD);
 
     const extractedNumbers = [...extractedBalls.map((b) => b.number), bonusBall?.number].filter(Boolean) as number[];
 
-    let closestBallNum: number | null = null;
+    let caughtBallNum: number | null = null;
     let minDistance = Infinity;
 
     Object.entries(ballsRefMap.current).forEach(([numStr, rigidBody]) => {
@@ -33,19 +49,20 @@ export const ExtractionTube: React.FC<ExtractionTubeProps> = ({ ballsRefMap }) =
         const ballPos = new THREE.Vector3(translation.x, translation.y, translation.z);
         const distance = ballPos.distanceTo(exitPoint.current);
 
-        if (distance < minDistance) {
+        if (distance <= thresholdRadius.current && distance < minDistance) {
           minDistance = distance;
-          closestBallNum = num;
+          caughtBallNum = num;
         }
       } catch (e) {
-        // 물리 바인딩 방어
+        // 예외 방어
       }
     });
 
-    if (closestBallNum !== null) {
-      const success = triggerExtractionByBallNumber(closestBallNum);
+    if (caughtBallNum !== null) {
+      const success = triggerExtractionByBallNumber(caughtBallNum);
       if (success) {
-        lastExtractedTime.current = now;
+        lastExtractedTime.current = Date.now();
+        thresholdRadius.current = BASE_THRESHOLD;
       }
     }
   });
@@ -55,7 +72,7 @@ export const ExtractionTube: React.FC<ExtractionTubeProps> = ({ ballsRefMap }) =
       {/* ===== 비너스 정품 아치형 투명 캡 하우징 (Venus Arch Vault Cap) ===== */}
       <group>
         {/* 1. 상단 둥근 아치 돔 캡 (Arch Dome Top) */}
-        <mesh position={[0, 0.25, 0]} rotation={[0, 0, 0]}>
+        <mesh position={[0, 0.25, 0]}>
           <sphereGeometry args={[0.38, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
           <meshPhysicalMaterial
             transparent
@@ -70,10 +87,9 @@ export const ExtractionTube: React.FC<ExtractionTubeProps> = ({ ballsRefMap }) =
           />
         </mesh>
 
-        {/* 2. 전면 아치 개포구 / 아치문 틀 리브 기둥 (Arch Gate Pillars - 이미지와 동일) */}
+        {/* 2. 전면 아치 개포구 / 아치문 틀 리브 기둥 */}
         {[-0.34, 0.34].map((xPos, idx) => (
           <group key={idx} position={[xPos, -0.05, 0]}>
-            {/* 세로 아크릴 기둥 */}
             <mesh position={[0, 0.15, 0]}>
               <boxGeometry args={[0.08, 0.5, 0.5]} />
               <meshPhysicalMaterial
@@ -99,7 +115,7 @@ export const ExtractionTube: React.FC<ExtractionTubeProps> = ({ ballsRefMap }) =
           />
         </mesh>
 
-        {/* 3. 캡 상단 중앙 흡입 연결 튜브 링 (Top Suction Head) */}
+        {/* 3. 캡 상단 중앙 흡입 연결 튜브 링 */}
         <mesh position={[0, 0.65, 0]}>
           <cylinderGeometry args={[0.18, 0.18, 0.25, 32]} />
           <meshPhysicalMaterial

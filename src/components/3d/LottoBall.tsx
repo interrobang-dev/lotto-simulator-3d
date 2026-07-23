@@ -83,14 +83,20 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number, ballsRefMap }) => 
       }
     }
 
-    // 2. SLIDE_MODE: 뚜껑 캡 고정(0.8초) 후 전면 거치대로 우아하게 날아옴(1.7초)
+    // 2. SLIDE_MODE: 뚜껑 캡 부르르 떨림(0.8초) 후 전면 거치대로 우아하게 날아옴(1.7초)
     if (ballMode === 'SLIDE_MODE' && activeExtractingBall?.number === number) {
       slideProgress.current = Math.min(slideProgress.current + delta * 0.45, 1);
       const pos = getVenusFlightPath(activeExtractingBall.slotIndex, slideProgress.current);
 
       if (meshRef.current) {
         meshRef.current.position.copy(pos);
-        if (slideProgress.current >= 0.25) {
+
+        if (slideProgress.current < 0.25) {
+          // 캡 포획 구간 부르르 미세 회전 진동
+          meshRef.current.rotation.x += Math.sin(slideProgress.current * 80) * 0.1;
+          meshRef.current.rotation.z += Math.cos(slideProgress.current * 80) * 0.1;
+        } else {
+          // 비행 이송 구간 회전
           meshRef.current.rotation.x += delta * 8;
           meshRef.current.rotation.y += delta * 6;
         }

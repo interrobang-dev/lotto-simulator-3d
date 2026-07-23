@@ -21,21 +21,26 @@ export function getCubicBezierPoint(
   return p;
 }
 
-// 뚜껑 캡 포획(0, 2.9, 0) 후 공중으로 날아올라 전면 거치대에 안착하는 3D 비행 궤적
+// 뚜껑 캡 포획(0, 2.85, 0) 후 부르르 미세 떨림 ➔ 곡선 비행 궤적
 export function getVenusFlightPath(slotIndex: number, progress: number): THREE.Vector3 {
-  // 1단계 (progress < 0.25): 상단 투명 뚜껑 캡 내부 찰칵 고정
+  // 1단계 (progress < 0.25): 뚜껑 캡 내부 찰칵 고정 및 고주파 공기압 미세 떨림 (Jitter Shake)
   if (progress < 0.25) {
-    return new THREE.Vector3(0, 2.85, 0);
+    const shakeTime = progress * 150;
+    const shakeX = Math.sin(shakeTime * 1.7) * 0.025;
+    const shakeY = Math.cos(shakeTime * 2.3) * 0.025;
+    const shakeZ = Math.sin(shakeTime * 1.9) * 0.025;
+
+    return new THREE.Vector3(shakeX, 2.85 + shakeY, shakeZ);
   }
 
-  // 2단계 (progress >= 0.25): 뚜껑에서 릴리스되어 전면 거치대로 곡선 비행 (0.25 -> 1.0 매핑)
+  // 2단계 (progress >= 0.25): 뚜껑에서 릴리스되어 전면 거치대로 곡선 비행
   const normT = (progress - 0.25) / 0.75;
   const targetX = -1.8 + slotIndex * 0.55;
 
   const p0 = new THREE.Vector3(0, 2.85, 0);                 // 뚜껑 캡 시작점
-  const p1 = new THREE.Vector3(targetX * 0.5, 3.8, 0.8);     // 공중으로 약간 올라가는 최고점
-  const p2 = new THREE.Vector3(targetX * 0.85, 0.5, 1.8);    // 전면으로 안착하는 낙하 경로
-  const p3 = new THREE.Vector3(targetX, -1.8, 2.2);          // 거치대 슬롯 안착 위치
+  const p1 = new THREE.Vector3(targetX * 0.5, 3.8, 0.8);     // 최고점
+  const p2 = new THREE.Vector3(targetX * 0.85, 0.5, 1.8);    // 낙하 경로
+  const p3 = new THREE.Vector3(targetX, -1.8, 2.2);          // 거치대 슬롯 안착
 
   return getCubicBezierPoint(p0, p1, p2, p3, normT);
 }
