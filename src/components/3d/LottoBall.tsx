@@ -4,7 +4,7 @@ import { RigidBody, BallCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useLottoStore } from '../../store/useLottoStore';
 import { getLottoColor, createBallCanvasTexture } from '../../utils/colorUtils';
-import { getVenusSlidePath } from '../../utils/bezierUtils';
+import { getVenusFlightPath } from '../../utils/bezierUtils';
 
 interface LottoBallProps {
   number: number;
@@ -83,15 +83,17 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number, ballsRefMap }) => 
       }
     }
 
-    // 2. SLIDE_MODE: 전면 레일 굴러내려옴
+    // 2. SLIDE_MODE: 뚜껑 캡 고정(0.8초) 후 전면 거치대로 우아하게 날아옴(1.7초)
     if (ballMode === 'SLIDE_MODE' && activeExtractingBall?.number === number) {
-      slideProgress.current = Math.min(slideProgress.current + delta * 0.5, 1);
-      const pos = getVenusSlidePath(activeExtractingBall.slotIndex, slideProgress.current);
+      slideProgress.current = Math.min(slideProgress.current + delta * 0.45, 1);
+      const pos = getVenusFlightPath(activeExtractingBall.slotIndex, slideProgress.current);
 
       if (meshRef.current) {
         meshRef.current.position.copy(pos);
-        meshRef.current.rotation.x += delta * 10;
-        meshRef.current.rotation.z += delta * 5;
+        if (slideProgress.current >= 0.25) {
+          meshRef.current.rotation.x += delta * 8;
+          meshRef.current.rotation.y += delta * 6;
+        }
       }
     }
 

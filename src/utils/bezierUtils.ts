@@ -21,15 +21,21 @@ export function getCubicBezierPoint(
   return p;
 }
 
-// 비너스 전면 슬라이드 레일 궤적 좌표 (상단 흡입 파이프 -> 전면 S자 곡선 -> 거치대 안착)
-export function getVenusSlidePath(slotIndex: number, t: number): THREE.Vector3 {
-  const p0 = new THREE.Vector3(0, 3.5, 0);       // 상단 흡입구
-  const p1 = new THREE.Vector3(0, 2.8, 1.5);     // 전면 파이프 이송
-  const p2 = new THREE.Vector3(-1.5 + slotIndex * 0.5, -0.5, 2.0); // 전면 레일 회전
-  
-  // 거치대 슬롯 위치 (슬롯 0~5 메인 6개, 6번 보너스)
-  const targetX = -1.8 + slotIndex * 0.55;
-  const p3 = new THREE.Vector3(targetX, -1.8, 2.2);
+// 뚜껑 캡 포획(0, 2.9, 0) 후 공중으로 날아올라 전면 거치대에 안착하는 3D 비행 궤적
+export function getVenusFlightPath(slotIndex: number, progress: number): THREE.Vector3 {
+  // 1단계 (progress < 0.25): 상단 투명 뚜껑 캡 내부 찰칵 고정
+  if (progress < 0.25) {
+    return new THREE.Vector3(0, 2.85, 0);
+  }
 
-  return getCubicBezierPoint(p0, p1, p2, p3, t);
+  // 2단계 (progress >= 0.25): 뚜껑에서 릴리스되어 전면 거치대로 곡선 비행 (0.25 -> 1.0 매핑)
+  const normT = (progress - 0.25) / 0.75;
+  const targetX = -1.8 + slotIndex * 0.55;
+
+  const p0 = new THREE.Vector3(0, 2.85, 0);                 // 뚜껑 캡 시작점
+  const p1 = new THREE.Vector3(targetX * 0.5, 3.8, 0.8);     // 공중으로 약간 올라가는 최고점
+  const p2 = new THREE.Vector3(targetX * 0.85, 0.5, 1.8);    // 전면으로 안착하는 낙하 경로
+  const p3 = new THREE.Vector3(targetX, -1.8, 2.2);          // 거치대 슬롯 안착 위치
+
+  return getCubicBezierPoint(p0, p1, p2, p3, normT);
 }
