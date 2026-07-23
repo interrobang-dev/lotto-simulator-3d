@@ -6,7 +6,7 @@ on:
       - master
       - main
 
-# GitHub Pages 배포 권한 부여
+# GitHub Pages 배포 및 자동 활성화 권한 부여
 permissions:
   contents: read
   pages: write
@@ -27,10 +27,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js (Latest LTS)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 'lts/*'
           cache: 'npm'
 
       - name: Install dependencies
@@ -39,8 +39,10 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - name: Setup Pages (Auto Enablement)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
