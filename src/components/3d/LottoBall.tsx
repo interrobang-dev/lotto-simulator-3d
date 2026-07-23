@@ -23,14 +23,19 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
   const rackPosition = useMemo<[number, number, number]>(() => {
     const angle = ((number - 1) / 45) * Math.PI * 1.5;
     const x = Math.cos(angle) * 3.2 - 0.5;
-    const y = 4.8 - (number * 0.05);
+    const y = 4.8 - number * 0.05;
     const z = -0.5 + Math.sin(angle) * 0.4;
     return [x, y, z];
   }, [number]);
 
-  // 챔버 투입 낙하 초기 위치
+  // 챔버 투입 낙하 안전 스폰 위치 (챔버 중앙 내부 안쪽)
   const physicsSpawnPosition = useMemo<[number, number, number]>(() => {
-    return [(Math.random() - 0.5) * 2, -1.0 + (number % 5) * 0.4, (Math.random() - 0.5) * 2];
+    const row = Math.floor((number - 1) / 9);
+    const col = (number - 1) % 9;
+    const x = -1.2 + col * 0.3;
+    const y = -1.8 + row * 0.35;
+    const z = -1.0 + (number % 5) * 0.4;
+    return [x, y, z];
   }, [number]);
 
   const texture = useMemo(() => {
@@ -38,11 +43,10 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
     return createBallCanvasTexture(number, colorHex);
   }, [number]);
 
-  // 슬라이드 애니메이션 Progress
   const slideProgress = useRef(0);
 
   useFrame((_, delta) => {
-    // 1. SLIDE_MODE: 전면 아크릴 레일 굴러내려옴
+    // 1. SLIDE_MODE: 전면 레일 굴러내려옴
     if (ballMode === 'SLIDE_MODE' && activeExtractingBall?.number === number) {
       slideProgress.current = Math.min(slideProgress.current + delta * 0.5, 1);
       const pos = getVenusSlidePath(activeExtractingBall.slotIndex, slideProgress.current);
@@ -62,19 +66,30 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
         meshRef.current.position.set(targetX, -1.8, 2.2);
       }
     }
+
+    // 3. PHYSICS_MODE 세이프티 가드 (혹시라도 밖으로 나가면 챔버 중앙으로 원점 복구)
+    if (ballMode === 'PHYSICS_MODE' && rigidBodyRef.current) {
+      const translation = rigidBodyRef.current.translation();
+      const distFromCenter = Math.sqrt(translation.x ** 2 + translation.y ** 2 + translation.z ** 2);
+      if (distFromCenter > 2.8) {
+        rigidBodyRef.current.setTranslation({ x: 0, y: -1.0, z: 0 }, true);
+        rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      }
+    }
   });
 
-  // PHYSICS_MODE일 때만 Rapier RigidBody 렌더링
+  // PHYSICS_MODE일 때만 Rapier RigidBody 렌더링 (ccd=true로 통과 방지)
   if (ballMode === 'PHYSICS_MODE') {
     return (
       <RigidBody
         ref={rigidBodyRef}
         colliders={false}
         position={physicsSpawnPosition}
-        restitution={0.85}
-        friction={0.1}
-        linearDamping={0.2}
-        angularDamping={0.2}
+        restitution={0.8}
+        friction={0.2}
+        linearDamping={0.3}
+        angularDamping={0.3}
+        ccd={true}
       >
         <BallCollider args={[0.22]} />
         <mesh castShadow receiveShadow>
