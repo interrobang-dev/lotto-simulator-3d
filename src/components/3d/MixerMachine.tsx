@@ -1,37 +1,11 @@
-import React, { useMemo } from 'react';
-import { RigidBody, CuboidCollider } from '@react-three/rapier';
+import React from 'react';
+import { RigidBody, MeshCollider, CuboidCollider } from '@react-three/rapier';
+import * as THREE from 'three';
 
 export const MixerMachine: React.FC = () => {
-  const domeColliders = useMemo(() => {
-    const colliders: { pos: [number, number, number]; rot: [number, number, number] }[] = [];
-    const radius = 2.85;
-    const latitudes = [-1.2, -0.6, 0, 0.6, 1.2];
-    const longitudes = 12;
-
-    latitudes.forEach((lat) => {
-      const latRadius = radius * Math.cos(lat);
-      const y = radius * Math.sin(lat);
-
-      for (let i = 0; i < longitudes; i++) {
-        const lng = (i * Math.PI * 2) / longitudes;
-        const x = latRadius * Math.cos(lng);
-        const z = latRadius * Math.sin(lng);
-
-        const rotX = 0;
-        const rotY = -lng + Math.PI / 2;
-        const rotZ = lat;
-
-        colliders.push({
-          pos: [x, y, z],
-          rot: [rotX, rotY, rotZ],
-        });
-      }
-    });
-    return colliders;
-  }, []);
-
   return (
     <group>
+      {/* 비너스 구형 투명 아크릴 챔버 메쉬 */}
       <mesh position={[0, 0, 0]}>
         <sphereGeometry args={[3, 64, 64]} />
         <meshPhysicalMaterial
@@ -43,14 +17,17 @@ export const MixerMachine: React.FC = () => {
           thickness={0.5}
           color="#bae6fd"
           specularColor="#ffffff"
+          side={THREE.DoubleSide}
         />
       </mesh>
 
+      {/* 챔버 하단 크롬 메탈 받침대 메쉬 */}
       <mesh position={[0, -3.2, 0]}>
         <cylinderGeometry args={[2.2, 2.8, 1, 32]} />
         <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.1} />
       </mesh>
 
+      {/* 8방향 방사형 회오리 제트 노즐 메쉬 */}
       <group position={[0, -2.7, 0]}>
         {Array.from({ length: 8 }).map((_, idx) => {
           const angle = (idx * Math.PI) / 4;
@@ -67,23 +44,18 @@ export const MixerMachine: React.FC = () => {
         })}
       </group>
 
+      {/* 수학적으로 완전 밀폐된 내벽 구형 물리 콜라이더 (trimesh MeshCollider) */}
       <RigidBody type="fixed" colliders={false}>
-        <CuboidCollider args={[2.5, 0.2, 2.5]} position={[0, -2.85, 0]} restitution={0.85} />
+        {/* 구형 내벽 충돌체 (반지름 2.82m) */}
+        <MeshCollider type="trimesh">
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[2.82, 32, 32]} />
+            <meshBasicMaterial visible={false} side={THREE.BackSide} />
+          </mesh>
+        </MeshCollider>
 
-        {domeColliders.map((c, idx) => (
-          <CuboidCollider
-            key={idx}
-            args={[0.8, 0.8, 0.15]}
-            position={c.pos}
-            rotation={c.rot}
-            restitution={0.85}
-          />
-        ))}
-
-        <CuboidCollider args={[3, 0.2, 0.8]} position={[0, 2.9, 2]} restitution={0.85} />
-        <CuboidCollider args={[3, 0.2, 0.8]} position={[0, 2.9, -2]} restitution={0.85} />
-        <CuboidCollider args={[0.8, 0.2, 3]} position={[2, 2.9, 0]} restitution={0.85} />
-        <CuboidCollider args={[0.8, 0.2, 3]} position={[-2, 2.9, 0]} restitution={0.85} />
+        {/* 하단 바닥 보강 콜라이더 */}
+        <CuboidCollider args={[2.5, 0.2, 2.5]} position={[0, -2.75, 0]} restitution={0.8} />
       </RigidBody>
     </group>
   );

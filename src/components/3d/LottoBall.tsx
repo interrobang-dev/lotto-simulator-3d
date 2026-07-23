@@ -30,13 +30,13 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
     return [x, y, z];
   }, [number]);
 
-  // 챔버 투입 낙하 초기 위치
+  // 챔버 투입 낙하 안전 스폰 위치 (챔버 중앙 내부)
   const physicsSpawnPosition = useMemo<[number, number, number]>(() => {
     const row = Math.floor((number - 1) / 9);
     const col = (number - 1) % 9;
-    const x = -1.0 + col * 0.25;
+    const x = -0.8 + col * 0.2;
     const y = -1.8 + row * 0.3;
-    const z = -0.8 + (number % 5) * 0.35;
+    const z = -0.6 + (number % 5) * 0.3;
     return [x, y, z];
   }, [number]);
 
@@ -49,20 +49,20 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
   const impulseTimer = useRef(Math.random() * 10);
 
   useFrame((_, delta) => {
-    // 1. PHYSICS_MODE 인 공들에게 지속적인 8방향 회오리 공기 물리력(Impulse) 적용
+    // 1. PHYSICS_MODE: 회오리 바람 물리력 적용
     if (ballMode === 'PHYSICS_MODE' && rigidBodyRef.current && (status === 'MIXING' || status === 'EXTRACTING')) {
-      impulseTimer.current += delta * 5;
+      impulseTimer.current += delta * 4;
 
       const translation = rigidBodyRef.current.translation();
-      // 하단 챔버에 가깝거나 일정 높이 이하일수록 강하게 튀어오름
-      if (translation.y < 1.5) {
-        // 회오리 소용돌이 각도 및 불규칙 상승 임펄스 계산
+      
+      // Y축 높이가 1.2m 이하일 때만 공기 임펄스 부여
+      if (translation.y < 1.2) {
         const vortexAngle = impulseTimer.current + number;
-        const baseForce = airPower * 0.035;
+        const baseForce = airPower * 0.015; // 안정적인 회오리 물리력
 
-        const impulseX = Math.cos(vortexAngle) * baseForce + (Math.random() - 0.5) * 0.02;
-        const impulseY = (Math.random() * 0.4 + 0.6) * baseForce * 2.2;
-        const impulseZ = Math.sin(vortexAngle) * baseForce + (Math.random() - 0.5) * 0.02;
+        const impulseX = Math.cos(vortexAngle) * baseForce;
+        const impulseY = (Math.random() * 0.3 + 0.7) * baseForce * 1.8;
+        const impulseZ = Math.sin(vortexAngle) * baseForce;
 
         rigidBodyRef.current.applyImpulse({ x: impulseX, y: impulseY, z: impulseZ }, true);
       }
@@ -96,10 +96,10 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
         ref={rigidBodyRef}
         colliders={false}
         position={physicsSpawnPosition}
-        restitution={0.85}
-        friction={0.15}
-        linearDamping={0.2}
-        angularDamping={0.2}
+        restitution={0.75}
+        friction={0.2}
+        linearDamping={0.3}
+        angularDamping={0.3}
         ccd={true}
       >
         <BallCollider args={[0.22]} />
