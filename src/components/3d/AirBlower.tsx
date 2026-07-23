@@ -16,12 +16,12 @@ export const AirBlower: React.FC = () => {
       if (particlesRef.current) {
         const posArr = particlesRef.current.geometry.attributes.position.array as Float32Array;
         for (let i = 0; i < particleCount; i++) {
-          const angle = posArr[i * 3 + 1] * 2 + i; // 회오리 각도
-          const radius = 0.5 + Math.sin(posArr[i * 3 + 1]) * 1.5;
+          const angle = posArr[i * 3 + 1] * 2.5 + i;
+          const radius = 0.4 + Math.sin(posArr[i * 3 + 1]) * 1.4;
 
           posArr[i * 3] = Math.cos(angle) * radius;
           posArr[i * 3 + 2] = Math.sin(angle) * radius;
-          posArr[i * 3 + 1] += delta * (airPower * 1.8);
+          posArr[i * 3 + 1] += delta * (airPower * 1.4);
 
           if (posArr[i * 3 + 1] > 2.5) {
             posArr[i * 3 + 1] = -2.5;

@@ -28,13 +28,13 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
     return [x, y, z];
   }, [number]);
 
-  // 챔버 투입 낙하 안전 스폰 위치 (챔버 중앙 내부 안쪽)
+  // 챔버 투입 낙하 초기 위치
   const physicsSpawnPosition = useMemo<[number, number, number]>(() => {
     const row = Math.floor((number - 1) / 9);
     const col = (number - 1) % 9;
-    const x = -1.2 + col * 0.3;
-    const y = -1.8 + row * 0.35;
-    const z = -1.0 + (number % 5) * 0.4;
+    const x = -1.0 + col * 0.25;
+    const y = -1.8 + row * 0.3;
+    const z = -0.8 + (number % 5) * 0.35;
     return [x, y, z];
   }, [number]);
 
@@ -66,19 +66,9 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
         meshRef.current.position.set(targetX, -1.8, 2.2);
       }
     }
-
-    // 3. PHYSICS_MODE 세이프티 가드 (혹시라도 밖으로 나가면 챔버 중앙으로 원점 복구)
-    if (ballMode === 'PHYSICS_MODE' && rigidBodyRef.current) {
-      const translation = rigidBodyRef.current.translation();
-      const distFromCenter = Math.sqrt(translation.x ** 2 + translation.y ** 2 + translation.z ** 2);
-      if (distFromCenter > 2.8) {
-        rigidBodyRef.current.setTranslation({ x: 0, y: -1.0, z: 0 }, true);
-        rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      }
-    }
   });
 
-  // PHYSICS_MODE일 때만 Rapier RigidBody 렌더링 (ccd=true로 통과 방지)
+  // PHYSICS_MODE일 때만 Rapier RigidBody 렌더링 (순간이동 로직 완전 삭제, ccd 활성화)
   if (ballMode === 'PHYSICS_MODE') {
     return (
       <RigidBody
