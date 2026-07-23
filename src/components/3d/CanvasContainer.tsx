@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Environment, AdaptiveDpr } from '@react-three/drei';
@@ -10,6 +10,9 @@ import { ExtractionTube } from './ExtractionTube';
 import { CameraRig } from './CameraRig';
 
 export const CanvasContainer: React.FC = () => {
+  // 45개 공의 실시간 RigidBody 인스턴스 참조 맵
+  const ballsRefMap = useRef<Record<number, any>>({});
+
   return (
     <div className="w-full h-full relative bg-slate-950">
       <Canvas
@@ -32,16 +35,16 @@ export const CanvasContainer: React.FC = () => {
 
         <Physics gravity={[0, -9.81, 0]}>
           <MixerMachine />
-          <ExtractionTube />
+          <ExtractionTube ballsRefMap={ballsRefMap} />
           <AirBlower />
 
           <RigidBody type="fixed" colliders={false}>
             <CuboidCollider args={[15, 0.5, 15]} position={[0, -5, 0]} />
           </RigidBody>
 
-          {/* 45개 로또 공 렌더링 (초기에 챔버 구 내부 바닥에 배치) */}
+          {/* 45개 로또 공 렌더링 */}
           {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => (
-            <LottoBall key={num} number={num} />
+            <LottoBall key={num} number={num} ballsRefMap={ballsRefMap} />
           ))}
         </Physics>
       </Canvas>

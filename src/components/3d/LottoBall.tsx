@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, BallCollider } from '@react-three/rapier';
 import * as THREE from 'three';
@@ -8,9 +8,10 @@ import { getVenusSlidePath } from '../../utils/bezierUtils';
 
 interface LottoBallProps {
   number: number;
+  ballsRefMap: React.MutableRefObject<Record<number, any>>;
 }
 
-export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
+export const LottoBall: React.FC<LottoBallProps> = ({ number, ballsRefMap }) => {
   const rigidBodyRef = useRef<any>(null);
   const meshRef = useRef<THREE.Mesh>(null);
 
@@ -26,10 +27,10 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
     const layer = Math.floor((number - 1) / 12);
     const idxInLayer = (number - 1) % 12;
     const angle = (idxInLayer / 12) * Math.PI * 2;
-    const r = 0.5 + (layer * 0.4);
+    const r = 0.5 + layer * 0.4;
     
     const x = Math.cos(angle) * r;
-    const y = -2.3 + layer * 0.45; // 챔버 바닥(-2.3m)부터 적층
+    const y = -2.3 + layer * 0.45;
     const z = Math.sin(angle) * r;
     return [x, y, z];
   }, [number]);
@@ -42,14 +43,23 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
   const slideProgress = useRef(0);
   const pulseOffset = useRef(Math.random() * Math.PI * 2);
 
+  // RigidBody 인스턴스 실시간 맵 등록
+  useEffect(() => {
+    if (rigidBodyRef.current) {
+      ballsRefMap.current[number] = rigidBodyRef.current;
+    }
+    return () => {
+      delete ballsRefMap.current[number];
+    };
+  }, [ballMode, ballsRefMap, number]);
+
   useFrame((_, delta) => {
-    // 1. PHYSICS_MODE: MIXING 또는 EXTRACTING 상태일 때만 바람(Impulse)이 작용함! (IDLE 일 때는 바람 없이 중력만 적용되어 바닥에 고요히 놓여짐)
+    // 1. PHYSICS_MODE: MIXING 또는 EXTRACTING 상태일 때 공기 임펄스 작동
     if (ballMode === 'PHYSICS_MODE' && rigidBodyRef.current && (status === 'MIXING' || status === 'EXTRACTING')) {
       pulseOffset.current += delta * 4;
 
       const translation = rigidBodyRef.current.translation();
       
-      // 공이 바닥 구역(Y < -0.5m)에 있을 때 펄스파 분출
       if (translation.y < -0.5) {
         const isPulseActive = Math.sin(pulseOffset.current + number * 0.5) > -0.3;
 
@@ -98,7 +108,10 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
   if (ballMode === 'PHYSICS_MODE') {
     return (
       <RigidBody
-        ref={rigidBodyRef}
+        ref={(ref) => {
+          rigidBodyRef.current = ref;
+          if (ref) ballsRefMap.current[number] = ref;
+        }}
         colliders={false}
         position={physicsSpawnPosition}
         restitution={0.7}
