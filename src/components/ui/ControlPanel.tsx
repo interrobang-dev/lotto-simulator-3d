@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, RotateCcw, Wind, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { Play, RotateCcw, Wind, Eye, ChevronDown } from 'lucide-react';
 import { useLottoStore } from '../../store/useLottoStore';
 import type { CameraView } from '../../types/lotto';
 
@@ -27,10 +27,29 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onOpenStats }) => {
 
   return (
     <div className="absolute bottom-3 sm:bottom-6 left-1/2 transform -translate-x-1/2 z-20 w-[94%] sm:w-auto max-w-2xl transition-all duration-300">
-      {/* 콘솔 패널 하우징 */}
-      <div className="bg-slate-950/95 p-3 sm:p-4 rounded-2xl border border-amber-500/30 shadow-2xl backdrop-blur-xl flex flex-col items-center gap-3 lotto-gold-glow">
-        
-        {/* 콘솔 상단 헤더 & 주 조작 버튼 그룹 */}
+      
+      {/* ===== 패널 상단 중앙 돌출형 아치 탭 버튼 ===== */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-30 bg-slate-950/95 border-t border-x border-amber-500/40 text-amber-400 hover:text-amber-300 px-5 py-0.5 rounded-t-xl text-xs font-bold flex items-center justify-center shadow-lg backdrop-blur-md transition-all active:scale-95 border-b-0 lotto-gold-glow group cursor-pointer"
+        title={isCollapsed ? '조작 콘솔 펼치기' : '조작 콘솔 접기'}
+      >
+        <ChevronDown
+          className={`w-3.5 h-3.5 transition-transform duration-300 ease-in-out ${
+            isCollapsed ? 'transform rotate-180 text-amber-400' : 'text-amber-400/80 group-hover:text-amber-300'
+          }`}
+        />
+      </button>
+
+      {/* 콘솔 패널 메인 하우징 (접힘 시 공간 0px 밀착) */}
+      <div
+        className={`rounded-2xl backdrop-blur-xl flex flex-col items-center lotto-gold-glow relative transition-all duration-300 ${
+          isCollapsed
+            ? 'p-2 bg-slate-950/90 border border-amber-500/20 shadow-lg gap-0'
+            : 'p-3 sm:p-4 bg-slate-950/95 border border-amber-500/30 shadow-2xl gap-3'
+        }`}
+      >
+        {/* 콘솔 메인 주 조작 버튼 그룹 */}
         <div className="w-full flex items-center justify-between gap-2.5">
           {/* 추첨 시작 골드 버튼 */}
           <button
@@ -49,26 +68,23 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onOpenStats }) => {
           {/* 리셋 초기화 버튼 */}
           <button
             onClick={resetSimulation}
-            className="px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs sm:text-sm border border-slate-750 transition-all active:scale-95 flex items-center gap-1.5 shadow-md"
+            className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs sm:text-sm border border-slate-750 transition-all active:scale-95 flex items-center gap-1.5 shadow-md"
             title="초기화"
           >
             <RotateCcw className="w-4 h-4 text-amber-400" />
             <span className="hidden sm:inline">초기화</span>
           </button>
-
-          {/* 접기/펼치기 탭 */}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="flex items-center gap-1 px-3 py-2.5 sm:py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold text-xs transition-all active:scale-95 border border-amber-500/30 shadow-md"
-          >
-            <span>{isCollapsed ? '옵션' : '접기'}</span>
-            {isCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
         </div>
 
-        {/* 펼쳐지는 조작 랙 (바람 조절, 카메라, 통계) */}
-        {!isCollapsed && (
-          <div className="w-full flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-850">
+        {/* 부드러운 아코디언 슬라이드 애니메이션 랙 (접힘 시 공간 0px 완전 제거) */}
+        <div
+          className={`w-full overflow-hidden transition-all duration-300 ease-in-out transform origin-top ${
+            isCollapsed
+              ? 'max-h-0 opacity-0 scale-y-95 pt-0 mt-0 border-t-0 border-transparent'
+              : 'max-h-48 opacity-100 scale-y-100 pt-3 mt-0 border-t border-slate-850'
+          }`}
+        >
+          <div className="w-full flex flex-wrap items-center justify-between gap-3">
             {/* 바람 조작 랙 */}
             <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
               <Wind className="w-4 h-4 text-amber-400" />
@@ -110,7 +126,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onOpenStats }) => {
               통계 보고서
             </button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
