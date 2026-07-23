@@ -7,7 +7,7 @@ export const ExtractedBallDeck: React.FC = () => {
   const getStatusText = () => {
     switch (status) {
       case 'IDLE':
-        return '추첨을 시작하려면 하단의 [추첨 시작] 버튼을 눌러주세요.';
+        return '추첨이 준비되었습니다.';
       case 'MIXING':
         return '추첨기 내부에서 공을 강력하게 뒤섞고 있습니다...';
       case 'EXTRACTING':
@@ -17,7 +17,7 @@ export const ExtractedBallDeck: React.FC = () => {
         }
         return '다음 당첨 공을 추첨하고 있습니다...';
       case 'COMPLETED':
-        return '이번 회차 로또 6/45 당첨 번호 추첨이 모두 완료되었습니다.';
+        return '로또 6/45 당첨 번호 추첨이 모두 완료되었습니다.';
       default:
         return '';
     }
@@ -36,10 +36,6 @@ export const ExtractedBallDeck: React.FC = () => {
 
       {/* 2. 하이라이트 당첨 번호 전광판 & 하단 진행 상태 서브 바 */}
       <div className="w-full bg-gradient-to-b from-slate-900/95 to-slate-950/95 border border-amber-500/30 rounded-2xl p-3 sm:p-4 shadow-2xl backdrop-blur-lg lotto-gold-glow flex flex-col items-center gap-2.5">
-        <div className="text-[10px] sm:text-xs font-bold text-amber-400/80 tracking-widest uppercase">
-          WINNING NUMBERS
-        </div>
-
         {/* 당첨 공 6+1 배열 */}
         <div className="flex items-center justify-center gap-1.5 sm:gap-3 w-full overflow-x-auto py-1">
           {/* 메인 당첨 번호 6개 */}
@@ -66,7 +62,7 @@ export const ExtractedBallDeck: React.FC = () => {
             })}
           </div>
 
-          <div className="text-amber-400/60 font-black text-base sm:text-2xl px-1 flex-shrink-0 mb-4">+</div>
+          <div className="text-amber-400/60 font-black text-base sm:text-2xl px-1 flex-shrink-0">+</div>
 
           {/* 영문 BONUS 뱃지 */}
           <div className="flex flex-col items-center gap-1 flex-shrink-0">
