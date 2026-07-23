@@ -46,16 +46,15 @@ export const MixerMachine: React.FC = () => {
 
       {/* 수학적으로 완전 밀폐된 내벽 구형 물리 콜라이더 (trimesh MeshCollider) */}
       <RigidBody type="fixed" colliders={false}>
-        {/* 구형 내벽 충돌체 (반지름 2.82m) */}
         <MeshCollider type="trimesh">
           <mesh position={[0, 0, 0]}>
-            <sphereGeometry args={[2.82, 32, 32]} />
+            <sphereGeometry args={[2.85, 32, 32]} />
             <meshBasicMaterial visible={false} side={THREE.BackSide} />
           </mesh>
         </MeshCollider>
 
-        {/* 하단 바닥 보강 콜라이더 */}
-        <CuboidCollider args={[2.5, 0.2, 2.5]} position={[0, -2.75, 0]} restitution={0.8} />
+        {/* 바닥 베이스 콜라이더 (최하단 -2.85) */}
+        <CuboidCollider args={[2.5, 0.1, 2.5]} position={[0, -2.85, 0]} restitution={0.85} />
       </RigidBody>
     </group>
   );
