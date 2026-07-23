@@ -30,7 +30,7 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
     return [x, y, z];
   }, [number]);
 
-  // 챔버 투입 낙하 안전 스폰 위치 (챔버 중앙 내부)
+  // 챔버 투입 낙하 초기 위치
   const physicsSpawnPosition = useMemo<[number, number, number]>(() => {
     const row = Math.floor((number - 1) / 9);
     const col = (number - 1) % 9;
@@ -46,26 +46,31 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
   }, [number]);
 
   const slideProgress = useRef(0);
-  const impulseTimer = useRef(Math.random() * 10);
+  const impulseTimer = useRef(Math.random() * 100);
 
   useFrame((_, delta) => {
-    // 1. PHYSICS_MODE: 회오리 바람 물리력 적용
+    // 1. PHYSICS_MODE: 상하 순환 역동적 회오리 물리력 적용
     if (ballMode === 'PHYSICS_MODE' && rigidBodyRef.current && (status === 'MIXING' || status === 'EXTRACTING')) {
-      impulseTimer.current += delta * 4;
+      impulseTimer.current += delta * (3.5 + (number % 3) * 0.5);
 
       const translation = rigidBodyRef.current.translation();
-      
-      // Y축 높이가 1.2m 이하일 때만 공기 임펄스 부여
-      if (translation.y < 1.2) {
-        const vortexAngle = impulseTimer.current + number;
-        const baseForce = airPower * 0.015; // 안정적인 회오리 물리력
+      const vortexAngle = impulseTimer.current * 0.8 + number;
+      const baseForce = airPower * 0.02;
 
-        const impulseX = Math.cos(vortexAngle) * baseForce;
-        const impulseY = (Math.random() * 0.3 + 0.7) * baseForce * 1.8;
-        const impulseZ = Math.sin(vortexAngle) * baseForce;
+      let impulseX = Math.cos(vortexAngle) * baseForce * 0.6;
+      let impulseZ = Math.sin(vortexAngle) * baseForce * 0.6;
+      let impulseY = 0;
 
-        rigidBodyRef.current.applyImpulse({ x: impulseX, y: impulseY, z: impulseZ }, true);
+      // 위치 기반 상하 순환 물리 연산 (Y < 0.2 시 강한 상승, Y > 1.2 시 하향 낙하 유도)
+      if (translation.y < 0.2) {
+        impulseY = (Math.random() * 0.5 + 0.8) * baseForce * 2.8; // 하단 -> 상단 솟구침
+      } else if (translation.y > 1.2) {
+        impulseY = -(Math.random() * 0.4 + 0.3) * baseForce * 1.5; // 상단 -> 하단 낙하 유도
+      } else {
+        impulseY = (Math.random() - 0.4) * baseForce * 1.2; // 중앙 난류
       }
+
+      rigidBodyRef.current.applyImpulse({ x: impulseX, y: impulseY, z: impulseZ }, true);
     }
 
     // 2. SLIDE_MODE: 전면 레일 굴러내려옴
@@ -98,8 +103,8 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
         position={physicsSpawnPosition}
         restitution={0.75}
         friction={0.2}
-        linearDamping={0.3}
-        angularDamping={0.3}
+        linearDamping={0.25}
+        angularDamping={0.25}
         ccd={true}
       >
         <BallCollider args={[0.22]} />
