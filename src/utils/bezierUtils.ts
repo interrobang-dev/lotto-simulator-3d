@@ -38,9 +38,9 @@ export function getVenusFlightPath(slotIndex: number, progress: number): THREE.V
   const targetX = -1.8 + slotIndex * 0.55;
 
   const p0 = new THREE.Vector3(0, 2.85, 0);                 // 뚜껑 캡 시작점
-  const p1 = new THREE.Vector3(targetX * 0.5, 3.8, 0.8);     // 최고점
-  const p2 = new THREE.Vector3(targetX * 0.85, 0.5, 1.8);    // 낙하 경로
-  const p3 = new THREE.Vector3(targetX, -1.8, 2.2);          // 거치대 슬롯 안착
+  const p1 = new THREE.Vector3(targetX * 0.5, 4.0, 1.2);     // 최고점
+  const p2 = new THREE.Vector3(targetX * 0.85, 0.5, 2.8);    // 낙하 경로
+  const p3 = new THREE.Vector3(targetX, -2.1, 3.4);          // 거치대 슬롯 안착
 
   return getCubicBezierPoint(p0, p1, p2, p3, normT);
 }

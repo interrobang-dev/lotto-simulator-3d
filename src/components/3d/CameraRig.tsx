@@ -9,9 +9,9 @@ export const CameraRig: React.FC = () => {
   const cameraView = useLottoStore((state) => state.cameraView);
   const { camera } = useThree();
 
-  // 정면 고정 시 3D 추첨기 구도 상향 조정 (Target: Y=0.95)
-  const FIXED_POS = new THREE.Vector3(0, 1.3, 15);
-  const FIXED_TARGET = new THREE.Vector3(0, 0.7, 0);
+  // 정면 고정 시 3D 추첨기 구도 (Z: 16.5 살짝 확대)
+  const FIXED_POS = new THREE.Vector3(0, 0.9, 16.5);
+  const FIXED_TARGET = new THREE.Vector3(0, 0.4, 0);
 
   // 시점 변경 시 카메라 보간 이동
   useEffect(() => {

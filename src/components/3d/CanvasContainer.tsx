@@ -17,7 +17,7 @@ export const CanvasContainer: React.FC = () => {
     <div className="w-full h-full relative bg-slate-950">
       <Canvas
         shadows
-        camera={{ position: [0, 0.5, 10.5], fov: 45 }}
+        camera={{ position: [0, 0.9, 16.5], fov: 45 }}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
       >
         <color attach="background" args={['#080c14']} />
