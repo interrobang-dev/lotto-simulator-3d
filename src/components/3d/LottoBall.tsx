@@ -43,6 +43,15 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number, ballsRefMap }) => 
   const slideProgress = useRef(0);
   const pulseOffset = useRef(Math.random() * Math.PI * 2);
 
+  // 공별 무작위 비행 3축 회전 속도
+  const flightRotSpeed = useMemo(() => {
+    return {
+      x: (Math.random() * 8 + 5) * (Math.random() > 0.5 ? 1 : -1),
+      y: (Math.random() * 8 + 5) * (Math.random() > 0.5 ? 1 : -1),
+      z: (Math.random() * 6 + 3) * (Math.random() > 0.5 ? 1 : -1),
+    };
+  }, []);
+
   // RigidBody 인스턴스 실시간 맵 등록
   useEffect(() => {
     if (rigidBodyRef.current) {
@@ -83,7 +92,7 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number, ballsRefMap }) => 
       }
     }
 
-    // 2. SLIDE_MODE: 뚜껑 캡 부르르 떨림(0.8초) 후 전면 거치대로 우아하게 날아옴(1.7초)
+    // 2. SLIDE_MODE: 뚜껑 캡 부르르 떨림 후 전면 거치대로 다차원 3D 회전 감속 비행
     if (ballMode === 'SLIDE_MODE' && activeExtractingBall?.number === number) {
       slideProgress.current = Math.min(slideProgress.current + delta * 0.45, 1);
       const pos = getVenusFlightPath(activeExtractingBall.slotIndex, slideProgress.current);
@@ -96,14 +105,18 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number, ballsRefMap }) => 
           meshRef.current.rotation.x += Math.sin(slideProgress.current * 80) * 0.1;
           meshRef.current.rotation.z += Math.cos(slideProgress.current * 80) * 0.1;
         } else {
-          // 비행 이송 구간 회전
-          meshRef.current.rotation.x += delta * 8;
-          meshRef.current.rotation.y += delta * 6;
+          // 비행 후반부(0.7~1.0) 서서히 멈추는 감속 계수 (Ease-Out Damping)
+          const normFlight = (slideProgress.current - 0.25) / 0.75;
+          const easeFactor = normFlight > 0.65 ? Math.pow(Math.max(0, (1 - normFlight) / 0.35), 2) : 1;
+
+          meshRef.current.rotation.x += delta * flightRotSpeed.x * easeFactor;
+          meshRef.current.rotation.y += delta * flightRotSpeed.y * easeFactor;
+          meshRef.current.rotation.z += delta * flightRotSpeed.z * easeFactor;
         }
       }
     }
 
-    // 3. DOCKED_MODE: 전면 거치대에 안착
+    // 3. DOCKED_MODE: 전면 거치대에 부드럽게 멈춘 무작위 방향으로 안착
     if (ballMode === 'DOCKED_MODE') {
       const extractedInfo = [...extractedBalls, bonusBall].find((b) => b?.number === number);
       if (extractedInfo && meshRef.current) {
