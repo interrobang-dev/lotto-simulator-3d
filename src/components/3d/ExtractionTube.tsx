@@ -11,7 +11,7 @@ interface ExtractionTubeProps {
 export const ExtractionTube: React.FC<ExtractionTubeProps> = ({ ballsRefMap }) => {
   const { status, activeExtractingBall, triggerExtractionByBallNumber, extractedBalls, bonusBall } = useLottoStore();
   const lastExtractedTime = useRef(Date.now());
-  const exitPoint = useRef(new THREE.Vector3(0, 2.85, 0));
+  const exitPoint = useRef(new THREE.Vector3(0, 3.10, 0));
 
   const BASE_THRESHOLD = 0.75;
   const MAX_THRESHOLD = 2.4;
@@ -68,7 +68,7 @@ export const ExtractionTube: React.FC<ExtractionTubeProps> = ({ ballsRefMap }) =
   });
 
   return (
-    <group position={[0, 2.85, 0]}>
+    <group position={[0, 3.10, 0]}>
       {/* ===== 비너스 정품 아치형 투명 캡 하우징 (Venus Arch Vault Cap) ===== */}
       <group>
         {/* 1. 상단 둥근 아치 돔 캡 (Arch Dome Top) */}

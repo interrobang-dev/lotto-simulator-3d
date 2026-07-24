@@ -30,15 +30,15 @@ export function getVenusFlightPath(slotIndex: number, progress: number): THREE.V
     const shakeY = Math.cos(shakeTime * 2.3) * 0.025;
     const shakeZ = Math.sin(shakeTime * 1.9) * 0.025;
 
-    return new THREE.Vector3(shakeX, 2.85 + shakeY, shakeZ);
+    return new THREE.Vector3(shakeX, 3.10 + shakeY, shakeZ);
   }
 
   // 2단계 (progress >= 0.25): 뚜껑에서 릴리스되어 전면 거치대로 곡선 비행
   const normT = (progress - 0.25) / 0.75;
   const targetX = (slotIndex - 3) * 0.55;
 
-  const p0 = new THREE.Vector3(0, 2.85, 0);                 // 뚜껑 캡 시작점
-  const p1 = new THREE.Vector3(targetX * 0.5, 4.0, 1.2);     // 최고점
+  const p0 = new THREE.Vector3(0, 3.10, 0);                 // 뚜껑 캡 시작점 (구체 표면 밀착 안착)
+  const p1 = new THREE.Vector3(targetX * 0.5, 4.1, 1.2);     // 최고점
   const p2 = new THREE.Vector3(targetX * 0.85, 0.5, 2.8);    // 낙하 경로
   const p3 = new THREE.Vector3(targetX, -2.1, 3.4);          // 거치대 슬롯 안착
 

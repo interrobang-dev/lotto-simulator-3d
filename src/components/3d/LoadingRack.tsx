@@ -3,7 +3,7 @@ import * as THREE from 'three';
 
 export const LoadingRack: React.FC = () => {
   return (
-    <group position={[0, 5.4, -0.5]}>
+    <group position={[0, 5.5, -0.5]}>
       {/* 상단 투명 랙 트랙 아크릴 가이드 파이프 3D 메쉬 */}
       <mesh rotation={[0, 0, Math.PI / 12]}>
         <cylinderGeometry args={[0.26, 0.26, 4.5, 32, 1, true]} />
