@@ -20,7 +20,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onOpenStats }) => {
 
   const views: { id: CameraView; label: string }[] = [
     { id: 'FIXED', label: '정면 고정' },
-    { id: 'FREE', label: '자유 3D' },
+    { id: 'FREE', label: '자유 이동' },
   ];
 
   return (
