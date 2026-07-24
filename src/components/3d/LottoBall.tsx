@@ -120,7 +120,7 @@ export const LottoBall: React.FC<LottoBallProps> = ({ number, ballsRefMap }) => 
     if (ballMode === 'DOCKED_MODE') {
       const extractedInfo = [...extractedBalls, bonusBall].find((b) => b?.number === number);
       if (extractedInfo && meshRef.current) {
-        const targetX = -1.8 + extractedInfo.slotIndex * 0.55;
+        const targetX = (extractedInfo.slotIndex - 3) * 0.55;
         meshRef.current.position.set(targetX, -2.1, 3.4);
       }
     }

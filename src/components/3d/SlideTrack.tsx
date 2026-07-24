@@ -11,9 +11,9 @@ export const SlideTrack: React.FC = () => {
           <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.1} />
         </mesh>
 
-        {/* 7개 공 홈 (6개 메인 + 1개 보너스) */}
+        {/* 7개 공 홈 (6개 메인 + 1개 보너스 - 원점 X:0 정중앙 대칭 정렬) */}
         {Array.from({ length: 7 }).map((_, idx) => {
-          const xPos = -1.8 + idx * 0.55;
+          const xPos = (idx - 3) * 0.55;
           const isBonus = idx === 6;
 
           return (

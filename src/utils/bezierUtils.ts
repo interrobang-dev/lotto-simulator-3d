@@ -35,7 +35,7 @@ export function getVenusFlightPath(slotIndex: number, progress: number): THREE.V
 
   // 2단계 (progress >= 0.25): 뚜껑에서 릴리스되어 전면 거치대로 곡선 비행
   const normT = (progress - 0.25) / 0.75;
-  const targetX = -1.8 + slotIndex * 0.55;
+  const targetX = (slotIndex - 3) * 0.55;
 
   const p0 = new THREE.Vector3(0, 2.85, 0);                 // 뚜껑 캡 시작점
   const p1 = new THREE.Vector3(targetX * 0.5, 4.0, 1.2);     // 최고점
